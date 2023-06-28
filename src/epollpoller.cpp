@@ -9,6 +9,7 @@ const int kNew = 0;
 const int kAdded = 1;
 const int kDeleted = 2;
 
+//EPOLL_CLOEXEC防止epollfd被子进程继承
 EpollPoller::EpollPoller(EventLoop* loop) : Poller(loop), 
     epollfd_(epoll_create1(EPOLL_CLOEXEC)), events_(KinitEventlistSize)
 {
@@ -28,10 +29,12 @@ TimeStamp EpollPoller::poll(int timeout, ChannelList* active_channels)
     //__FUNCTION__是当前运行函数的函数名
     LOG_DEBUG("func = %s => fd total count: %d\n", __FUNCTION__, channels_.size());
 
+    //开始监听
     int events_num = epoll_wait(epollfd_, &events_[0], static_cast<int>(events_.size()), timeout);
     //记录可能的错误和事件发生时间
     int save_errno = errno;
     TimeStamp now(TimeStamp::now());
+    //有活跃事件，把对应channel放入active列表
     if(events_num > 0)
     {
         LOG_DEBUG("%d events happend\n", events_num);
@@ -48,7 +51,7 @@ TimeStamp EpollPoller::poll(int timeout, ChannelList* active_channels)
     }
     else
     {
-        if(save_errno != errno)
+        if(save_errno != EINTR)
         {
             errno = save_errno;
             LOG_ERROR("EpollPoller::poll() error\n");
@@ -93,9 +96,10 @@ void EpollPoller::updateChannel(Channel* channel)
 void EpollPoller::removeChannel(Channel* channel)
 {
     int index = channel->index();
+    int sockfd = channel->getFd();
     LOG_INFO("func = %s fd = %d events = %d index = %d\n", __FUNCTION__, channel->getFd(), channel->getEvents(), index);
 
-    int sockfd = channel->getFd();
+    //在poller中移除并修改channel状态
     channels_.erase(sockfd);
     if(index == kAdded)
     {
@@ -109,7 +113,7 @@ void EpollPoller::fillActiveChannels(int event_num, ChannelList* active_channels
     //记录活跃的channel
     for(int i = 0; i < event_num; ++i)
     {
-        Channel *channel = static_cast<Channel*>(events_[i].data.ptr);
+        Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
         channel->setRevent(events_[i].events);
         active_channels->push_back(channel);
     }

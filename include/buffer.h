@@ -13,10 +13,8 @@ public:
     static const size_t kCheapPrepend = 8;
     static const size_t kInitialSize = 1024;
 public:
-    explicit Buffer(size_t init_size = kInitialSize) 
-        : read_index_(kCheapPrepend), 
-        write_index_(kCheapPrepend), 
-        buffer_(kCheapPrepend + init_size) {}
+    explicit Buffer(size_t init_size = kInitialSize) : buffer_(kCheapPrepend + init_size),
+        read_index_(kCheapPrepend), write_index_(kCheapPrepend) {}
 
     size_t readableBytes() const
     {

@@ -3,8 +3,6 @@
 
 #define BUFFER_SIZE 128
 
-TimeStamp::TimeStamp(int64_t times) : times_(times) {}
-
 TimeStamp TimeStamp::now()
 {
     return TimeStamp(time(nullptr));

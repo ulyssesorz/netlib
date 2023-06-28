@@ -13,8 +13,6 @@ public:
         server_.setConnectionCallback(bind(&EchoServer::onConnection, this, _1));
         server_.setMessageCallback(bind(&EchoServer::onMessage, this, _1, _2, _3));
         server_.setThreadNum(3);
-        Logger &logger = Logger::instance();
-        logger.setOpen(true);
     }
 
     void start()
@@ -47,6 +45,8 @@ private:
 
 int main()
 {
+    Logger& logger = Logger::instance();
+    logger.setOpen(true);
     EventLoop loop;
     InetAddress addr(8081);
     EchoServer server(&loop, addr, "echo server");

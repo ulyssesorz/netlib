@@ -10,15 +10,18 @@ using namespace std;
 
 using ThreadFunc = function<void()>;
 
-class Thread : public NonCopyable
+class Thread : NonCopyable
 {
 public:
-    explicit Thread(ThreadFunc func, const string& name = "");
+    explicit Thread(ThreadFunc func, const string& name = string());
     ~Thread();
 
+    //开启线程
     void start();
+    //设置成join状态
     void join();
 
+    //对外接口
     bool isStarted() const {return started_;}
     pid_t getTid() const {return tid_;}
     const string& getName() const {return name_;}

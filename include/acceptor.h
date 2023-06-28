@@ -25,6 +25,7 @@ public:
     void listen();
 
 private:
+    //用于接受新连接的请求
     void handleRead();
 
 private:

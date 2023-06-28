@@ -73,7 +73,7 @@ void EventLoop::loop()
 void EventLoop::quit()
 {
     quit_ = true;
-    //其他线程调用主loop的quit
+    //当前线程不是io线程，或者是io线程但正在执行其他回调，就唤醒io线程
     if(!isInLoopthread() || calling_pending_functors_)
     {
         wakeup();
@@ -93,12 +93,13 @@ void EventLoop::wakeup()
 
 void EventLoop::runInLoop(Functor callback)
 {
-    //loop和线程匹配，执行回调
+    //loop和线程匹配（是当前loop在执行runInLoop方法），执行回调
     if(isInLoopthread())
     {
         callback();
     }
-    //否则放入loop的等待队列
+    //其他loop将callback绑定到本loop的runInLoop
+    //本loop还没被调度，callback先排队等待
     else
     {
         queueInLoop(callback);

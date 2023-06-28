@@ -65,15 +65,15 @@ void TcpConnection::sendInLoop(const string& buf)
     ssize_t nwrote = 0;
     bool fault_error = false;
 
-    //channel开始写数据，且缓冲区为空
+    //channel还没写数据，且缓冲区为空，是第一次写
     if(!channel_->isWriting() && output_buffer_.readableBytes() == 0)
     {
         nwrote = write(channel_->getFd(), buf.c_str(), buf.size());
         if(nwrote >= 0)
         {
-            //buf剩余未写入缓冲区的数据
+            //buf剩余容量
             remaining = buf.size() - nwrote;
-            //都写入了，让loop执行complete的回调
+            //写满了，让loop执行complete的回调
             if(remaining == 0 && write_complete_callback_)
             {
                 //安全地传递this指针
@@ -104,6 +104,7 @@ void TcpConnection::sendInLoop(const string& buf)
         }   
         //buf没有全部发送出去，剩余数据需放入缓冲区
         output_buffer_.append(buf.c_str() + nwrote, remaining);
+        //注册poller写事件，通知channel写数据
         if(!channel_->isWriting())
         {
             channel_->enableWriting();
@@ -123,6 +124,7 @@ void TcpConnection::shutdown()
 
 void TcpConnection::shutdownInLoop()
 {
+    //没有写需求，关闭写端
     if(!channel_->isWriting())
     {
         socket_->shutdownWrite();
@@ -135,6 +137,7 @@ void TcpConnection::establishConnection()
     setState(kConnected);
     channel_->tie(shared_from_this());
     channel_->enableReading();
+    //用户定义的回调
     connection_callback_(shared_from_this());
 }
 
@@ -146,6 +149,7 @@ void TcpConnection::destroyConnection()
         setState(kDisconnected);
         channel_->disenableAll();
     }
+    //loop移除channel
     channel_->remove();
 }
 
@@ -153,6 +157,7 @@ void TcpConnection::handleRead(TimeStamp receive_time)
 {
     int save_errno = 0;
     ssize_t n = input_buffer_.readFd(channel_->getFd(), &save_errno);
+    //成功读取，执行用户定义的回调
     if(n > 0)
     {
         message_callback_(shared_from_this(), &input_buffer_, receive_time);
@@ -162,6 +167,7 @@ void TcpConnection::handleRead(TimeStamp receive_time)
     {
         handleClose();
     }
+    //n=-1，需检查错误
     else
     {
         errno = save_errno;
@@ -188,7 +194,7 @@ void TcpConnection::handleWrite()
                 {
                     loop_->queueInLoop(bind(write_complete_callback_, shared_from_this()));
                 }
-                //写完就要关闭连接
+                //如果正在关闭
                 if(state_ == kDisconnecting)
                 {
                     shutdownInLoop();
@@ -210,10 +216,12 @@ void TcpConnection::handleClose()
 {
     LOG_INFO("fd = %d state =  %d", channel_->getFd(), static_cast<int>(state_));
 
+    //停止监听所有事件
     setState(kDisconnected);
     channel_->disenableAll();
 
     TcpConnectionPtr ptr(shared_from_this());
+    //执行用户定义的回调
     connection_callback_(ptr);
     close_callback_(ptr);
 }

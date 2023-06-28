@@ -44,9 +44,9 @@ void Thread::join()
 //用线程id命名
 void Thread::setDefaultName()
 {
+    int num = ++thread_num_;
     if(name_.empty())
     {
-        int num = ++thread_num_;
         char buffer[BUFFER_SIZE] = {0};
         snprintf(buffer, sizeof(buffer), "Thread %d", num);
     }

@@ -84,17 +84,19 @@ private:
     static const int kWriteEvent;
 
 private:
-    //所属loop和封装的fd
+    //所属loop
     EventLoop* loop_;
+    //封装的fd
     const int fd_;
     //要监听的事件
     int events_;
+
     //poller发生的事件
     int real_events_;
-    //channel状态（1: new, 2: add, 3: delete)
+    //channel在poller里的状态（0: new, 1: add, 2: delete)
     int index_;
 
-    //观察channel的状态
+    //channel观察tcp连接的状态
     weak_ptr<void> tie_;
     bool tied_;
 

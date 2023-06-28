@@ -22,20 +22,21 @@ public:
 
     void start(const ThreadInitCallback& callback = ThreadInitCallback());
 
-    EventLoop *getNextEventLoop();
-
-    vector<EventLoop *> getAllLoops();
+    EventLoop* getNextEventLoop();
+    vector<EventLoop*> getAllLoops();
 
     bool getStarted() const { return started_; }
     string getName() const { return name_; }
 
 private:
+    //主loop
     EventLoop *baseloop_;
     string name_;
 
     bool started_;
     int thread_num_;
     int next_;
+
     //子loop的集合
     vector<unique_ptr<EventLoopThread>> threads_; 
     vector<EventLoop*> loops_;                   

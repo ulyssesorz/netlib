@@ -20,6 +20,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback& callback)
     }
     else
     {
+        //创建thread_num_个和thread和loop
         for(int i = 0; i < thread_num_; ++i)
         {
             char buf[name_.size() + 32] = {0};
@@ -33,10 +34,12 @@ void EventLoopThreadPool::start(const ThreadInitCallback& callback)
 
 EventLoop* EventLoopThreadPool::getNextEventLoop()
 {
+    //轮询的方式获取下一个loop
     EventLoop* loop = baseloop_;
     if(!loops_.empty())
     {
         loop = loops_[next_++];
+        //到最后一个了，从头开始
         if(next_ == loops_.size())
         {
             next_ = 0;
@@ -47,5 +50,6 @@ EventLoop* EventLoopThreadPool::getNextEventLoop()
 
 vector<EventLoop*> EventLoopThreadPool::getAllLoops()
 {
+    //返回子loop
     return loops_.empty() ? vector<EventLoop*>(1, baseloop_) : loops_;
 }

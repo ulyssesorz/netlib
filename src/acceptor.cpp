@@ -50,7 +50,7 @@ void Acceptor::handleRead()
     int connfd = accept_socket_.accept(&addr);
     if(connfd > 0)
     {
-        //执行回调
+        //执行回调（server中绑定的，功能是建立连接并分发给一个子loop）
         if(new_connection_callback_)
         {
             new_connection_callback_(connfd, addr);

@@ -21,10 +21,12 @@ ssize_t Buffer::readFd(int fd, int* save_errno)
     {
         *save_errno = errno;
     }
+    //buffer空间足够，移动index即可
     else if(n <= writable)
     {
         write_index_ += n;
     }
+    //buffer不够，多余数据在extra里，写回buffer
     else
     {
         write_index_ = buffer_.size();

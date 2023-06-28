@@ -27,8 +27,8 @@ TcpServer::~TcpServer()
     //关闭所有连接
     for(auto& it : connections_)
     {
-        //引用计数置1，退出循环后释放资源
         TcpConnectionPtr ptr(it.second);
+        //引用计数置1，退出循环后释放资源
         it.second.reset();
         ptr->getLoop()->runInLoop(bind(&TcpConnection::destroyConnection, ptr));
     }
@@ -64,8 +64,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peer_addr)
     LOG_INFO("tcp server::new connection[%s] -new connecion[%s] from %s\n", name_.c_str(), conn_name.c_str(), peer_addr.getIpAndPort().c_str());
 
     //创建socket地址
-    sockaddr_in addr;
-    bzero(&addr, sizeof(addr));
+    sockaddr_in addr = {0};
     socklen_t addrlen = sizeof(addr);
     if(::getsockname(sockfd, (sockaddr*)&addr, &addrlen) < 0)
     {
@@ -98,5 +97,6 @@ void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
 
     connections_.erase(conn->getName());
     EventLoop* ioloop = conn->getLoop();
+    //连接对应的loop来关闭连接
     ioloop->queueInLoop(bind(&TcpConnection::destroyConnection, conn));
 }

@@ -6,6 +6,7 @@
 
 using namespace std;
 
+//封装ip和port
 class InetAddress
 {
 public:

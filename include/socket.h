@@ -4,6 +4,7 @@
 
 class InetAddress;
 
+//封装socket
 class Socket : public NonCopyable
 {
 public:
@@ -16,8 +17,10 @@ public:
     void listen();
     int accept(InetAddress* peer_adress);
 
+    //半关闭
     void shutdownWrite();
 
+    //socket设置
     void setTcpNoDelay(bool on);
     void setReuseAddr(bool on);
     void setReusePort(bool on);

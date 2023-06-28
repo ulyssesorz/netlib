@@ -37,12 +37,14 @@ EventLoop* EventLoopThread::startLoop()
 //线程的任务
 void EventLoopThread::threadFunction()
 {
+    //线程创建一个loop
     EventLoop loop;
     if(callback_)
     {
         callback_(&loop);
     }
     {
+        //拿到loop后唤醒startLoop()
         unique_lock<mutex> locker(thread_mutex_);
         loop_ = &loop;
         condition_.notify_one();
@@ -50,6 +52,6 @@ void EventLoopThread::threadFunction()
     //开启loop
     loop.loop();
     //关闭loop
-    unique_lock<mutex> locker(thread_mutex_);
+    lock_guard<mutex> locker(thread_mutex_);
     loop_ = nullptr;
 }

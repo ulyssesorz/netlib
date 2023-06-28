@@ -44,19 +44,19 @@ public:
 
 private:
     void newConnection(int sockfd, const InetAddress& peer_addr);
-
     void removeConnection(const TcpConnectionPtr& conn);
-
     void removeConnectionInLoop(const TcpConnectionPtr& conn);
 
 private:
-    EventLoop *loop_;
+    //主loop
+    EventLoop* loop_;
     const string ip_port_;
     const string name_;
 
     unique_ptr<Acceptor> acceptor_;               
     shared_ptr<EventLoopThreadPool> thread_pool_; 
 
+    //回调
     ConnectionCallback connection_callback_;       
     MessageCallback message_callback_;              
     WriteCompleteCallback write_complete_callback_; 
@@ -65,5 +65,7 @@ private:
 
     atomic<int> started_;
     int next_conn_id_;
+
+    //name : conn的映射
     ConnectionMap connections_; 
 };
